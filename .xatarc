@@ -1,0 +1,6 @@
+{
+  "databaseURL": "https://G-D-Sahan-Chandrabahu-s-workspace-ej355s.ap-southeast-2.xata.sh/db/webvideorecorder",
+  "codegen": {
+    "output": "src/xata.ts"
+  }
+}

@@ -25,7 +25,7 @@ const Header = ({ subHeader, title, userImg }: SharedHeaderProps) => {
           </article>
         </div>
         <aside>
-          <Link href="/">
+          <Link href="/upload">
             <Image src={icons.upload} alt="upload" width={16} height={16} />
             <span>Upload a Video</span>
           </Link>
