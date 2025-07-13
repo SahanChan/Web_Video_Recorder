@@ -84,4 +84,4 @@ export const videos = pgTable("videos", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const schema = { user, account, session, verification };
+export const schema = { user, account, session, verification, videos };

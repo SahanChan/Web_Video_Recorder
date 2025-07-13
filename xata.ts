@@ -8,7 +8,7 @@ const DatabaseClient = buildClient();
 
 const defaultOptions = {
   databaseURL:
-    "https://G-D-Sahan-Chandrabahu-s-workspace-ej355s.ap-southeast-2.xata.sh/db/webvideorecorder",
+    "https://G-D-Sahan-Chandrabahu-s-workspace-ej355s.ap-southeast-2.xata.sh/db/webvideorecorderultimate",
   apiKey: process.env.XATA_API_KEY,
   branch: "main",
 };
