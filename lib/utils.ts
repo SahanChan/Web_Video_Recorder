@@ -99,19 +99,19 @@ export const withErrorHandling = <T, A extends unknown[]>(
   };
 };
 
-// export const getOrderByClause = (filter?: string) => {
-//   switch (filter) {
-//     case "Most Viewed":
-//       return sql`${videos.views} DESC`;
-//     case "Least Viewed":
-//       return sql`${videos.views} ASC`;
-//     case "Oldest First":
-//       return sql`${videos.createdAt} ASC`;
-//     case "Most Recent":
-//     default:
-//       return sql`${videos.createdAt} DESC`;
-//   }
-// };
+export const getOrderByClause = (filter?: string) => {
+  switch (filter) {
+    case "Most Viewed":
+      return sql`${videos.views} DESC`;
+    case "Least Viewed":
+      return sql`${videos.views} ASC`;
+    case "Oldest First":
+      return sql`${videos.createdAt} ASC`;
+    case "Most Recent":
+    default:
+      return sql`${videos.createdAt} DESC`;
+  }
+};
 
 export const generatePagination = (currentPage: number, totalPages: number) => {
   if (totalPages <= 7) {
@@ -301,7 +301,7 @@ export function daysAgo(inputDate: Date): string {
 }
 
 export const createIframeLink = (videoId: string) =>
-  `https://iframe.mediadelivery.net/embed/421422/${videoId}?autoplay=true&preload=true`;
+  `https://iframe.mediadelivery.net/embed/466822/${videoId}?autoplay=true&preload=true`;
 
 export const doesTitleMatch = (videos: any, searchQuery: string) =>
   ilike(

@@ -10,12 +10,14 @@ import {
   apiFetch,
   doesTitleMatch,
   getEnv,
+  getOrderByClause,
   // getOrderByClause,
   withErrorHandling,
 } from "@/lib/utils";
 import { BUNNY } from "@/constants";
 import { fixedWindow } from "arcjet";
 import { request } from "@arcjet/next";
+import aj from "@/lib/arcjet";
 // import aj, { fixedWindow, request } from "../arcjet";
 
 // Constants with full names
@@ -127,165 +129,165 @@ export const saveVideoDetails = withErrorHandling(
     return { videoId: videoDetails.videoId };
   },
 );
-//
-// export const getAllVideos = withErrorHandling(
-//   async (
-//     searchQuery: string = "",
-//     sortFilter?: string,
-//     pageNumber: number = 1,
-//     pageSize: number = 8,
-//   ) => {
-//     const session = await auth.api.getSession({ headers: await headers() });
-//     const currentUserId = session?.user.id;
-//
-//     const canSeeTheVideos = or(
-//       eq(videos.visibility, "public"),
-//       eq(videos.userId, currentUserId!),
-//     );
-//
-//     const whereCondition = searchQuery.trim()
-//       ? and(canSeeTheVideos, doesTitleMatch(videos, searchQuery))
-//       : canSeeTheVideos;
-//
-//     // Count total for pagination
-//     const [{ totalCount }] = await db
-//       .select({ totalCount: sql<number>`count(*)` })
-//       .from(videos)
-//       .where(whereCondition);
-//     const totalVideos = Number(totalCount || 0);
-//     const totalPages = Math.ceil(totalVideos / pageSize);
-//
-//     // Fetch paginated, sorted results
-//     const videoRecords = await buildVideoWithUserQuery()
-//       .where(whereCondition)
-//       .orderBy(
-//         sortFilter
-//           ? getOrderByClause(sortFilter)
-//           : sql`${videos.createdAt} DESC`,
-//       )
-//       .limit(pageSize)
-//       .offset((pageNumber - 1) * pageSize);
-//
-//     return {
-//       videos: videoRecords,
-//       pagination: {
-//         currentPage: pageNumber,
-//         totalPages,
-//         totalVideos,
-//         pageSize,
-//       },
-//     };
-//   },
-// );
-//
-// export const getVideoById = withErrorHandling(async (videoId: string) => {
-//   const [videoRecord] = await buildVideoWithUserQuery().where(
-//     eq(videos.videoId, videoId),
-//   );
-//   return videoRecord;
-// });
-//
-// export const getTranscript = withErrorHandling(async (videoId: string) => {
-//   const response = await fetch(
-//     `${BUNNY.TRANSCRIPT_URL}/${videoId}/captions/en-auto.vtt`,
-//   );
-//   return response.text();
-// });
-//
-// export const incrementVideoViews = withErrorHandling(
-//   async (videoId: string) => {
-//     await db
-//       .update(videos)
-//       .set({ views: sql`${videos.views} + 1`, updatedAt: new Date() })
-//       .where(eq(videos.videoId, videoId));
-//
-//     revalidatePaths([`/video/${videoId}`]);
-//     return {};
-//   },
-// );
-//
-// export const getAllVideosByUser = withErrorHandling(
-//   async (
-//     userIdParameter: string,
-//     searchQuery: string = "",
-//     sortFilter?: string,
-//   ) => {
-//     const currentUserId = (
-//       await auth.api.getSession({ headers: await headers() })
-//     )?.user.id;
-//     const isOwner = userIdParameter === currentUserId;
-//
-//     const [userInfo] = await db
-//       .select({
-//         id: user.id,
-//         name: user.name,
-//         image: user.image,
-//         email: user.email,
-//       })
-//       .from(user)
-//       .where(eq(user.id, userIdParameter));
-//     if (!userInfo) throw new Error("User not found");
-//
-//     /* eslint-disable @typescript-eslint/no-explicit-any */
-//     const conditions = [
-//       eq(videos.userId, userIdParameter),
-//       !isOwner && eq(videos.visibility, "public"),
-//       searchQuery.trim() && ilike(videos.title, `%${searchQuery}%`),
-//     ].filter(Boolean) as any[];
-//
-//     const userVideos = await buildVideoWithUserQuery()
-//       .where(and(...conditions))
-//       .orderBy(
-//         sortFilter ? getOrderByClause(sortFilter) : desc(videos.createdAt),
-//       );
-//
-//     return { user: userInfo, videos: userVideos, count: userVideos.length };
-//   },
-// );
-//
-// export const updateVideoVisibility = withErrorHandling(
-//   async (videoId: string, visibility: Visibility) => {
-//     await validateWithArcjet(videoId);
-//     await db
-//       .update(videos)
-//       .set({ visibility, updatedAt: new Date() })
-//       .where(eq(videos.videoId, videoId));
-//
-//     revalidatePaths(["/", `/video/${videoId}`]);
-//     return {};
-//   },
-// );
-//
-// export const getVideoProcessingStatus = withErrorHandling(
-//   async (videoId: string) => {
-//     const processingInfo = await apiFetch<BunnyVideoResponse>(
-//       `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoId}`,
-//       { bunnyType: "stream" },
-//     );
-//
-//     return {
-//       isProcessed: processingInfo.status === 4,
-//       encodingProgress: processingInfo.encodeProgress || 0,
-//       status: processingInfo.status,
-//     };
-//   },
-// );
-//
-// export const deleteVideo = withErrorHandling(
-//   async (videoId: string, thumbnailUrl: string) => {
-//     await apiFetch(
-//       `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoId}`,
-//       { method: "DELETE", bunnyType: "stream" },
-//     );
-//
-//     const thumbnailPath = thumbnailUrl.split("thumbnails/")[1];
-//     await apiFetch(
-//       `${THUMBNAIL_STORAGE_BASE_URL}/thumbnails/${thumbnailPath}`,
-//       { method: "DELETE", bunnyType: "storage", expectJson: false },
-//     );
-//
-//     await db.delete(videos).where(eq(videos.videoId, videoId));
-//     revalidatePaths(["/", `/video/${videoId}`]);
-//     return {};
-//   },
-// );
+
+export const getAllVideos = withErrorHandling(
+  async (
+    searchQuery: string = "",
+    sortFilter?: string,
+    pageNumber: number = 1,
+    pageSize: number = 8,
+  ) => {
+    const session = await auth.api.getSession({ headers: await headers() });
+    const currentUserId = session?.user.id;
+
+    const canSeeTheVideos = or(
+      eq(videos.visibility, "public"),
+      eq(videos.userId, currentUserId!),
+    );
+
+    const whereCondition = searchQuery.trim()
+      ? and(canSeeTheVideos, doesTitleMatch(videos, searchQuery))
+      : canSeeTheVideos;
+
+    // Count total for pagination
+    const [{ totalCount }] = await db
+      .select({ totalCount: sql<number>`count(*)` })
+      .from(videos)
+      .where(whereCondition);
+    const totalVideos = Number(totalCount || 0);
+    const totalPages = Math.ceil(totalVideos / pageSize);
+
+    // Fetch paginated, sorted results
+    const videoRecords = await buildVideoWithUserQuery()
+      .where(whereCondition)
+      .orderBy(
+        sortFilter
+          ? getOrderByClause(sortFilter)
+          : sql`${videos.createdAt} DESC`,
+      )
+      .limit(pageSize)
+      .offset((pageNumber - 1) * pageSize);
+
+    return {
+      videos: videoRecords,
+      pagination: {
+        currentPage: pageNumber,
+        totalPages,
+        totalVideos,
+        pageSize,
+      },
+    };
+  },
+);
+
+export const getVideoById = withErrorHandling(async (videoId: string) => {
+  const [videoRecord] = await buildVideoWithUserQuery().where(
+    eq(videos.id, videoId),
+  );
+  return videoRecord;
+});
+
+export const getTranscript = withErrorHandling(async (videoId: string) => {
+  const response = await fetch(
+    `${BUNNY.TRANSCRIPT_URL}/${videoId}/captions/en-auto.vtt`,
+  );
+  return response.text();
+});
+
+export const incrementVideoViews = withErrorHandling(
+  async (videoId: string) => {
+    await db
+      .update(videos)
+      .set({ views: sql`${videos.views} + 1`, updatedAt: new Date() })
+      .where(eq(videos.videoId, videoId));
+
+    revalidatePaths([`/video/${videoId}`]);
+    return {};
+  },
+);
+
+export const getAllVideosByUser = withErrorHandling(
+  async (
+    userIdParameter: string,
+    searchQuery: string = "",
+    sortFilter?: string,
+  ) => {
+    const currentUserId = (
+      await auth.api.getSession({ headers: await headers() })
+    )?.user.id;
+    const isOwner = userIdParameter === currentUserId;
+
+    const [userInfo] = await db
+      .select({
+        id: user.id,
+        name: user.name,
+        image: user.image,
+        email: user.email,
+      })
+      .from(user)
+      .where(eq(user.id, userIdParameter));
+    if (!userInfo) throw new Error("User not found");
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const conditions = [
+      eq(videos.userId, userIdParameter),
+      !isOwner && eq(videos.visibility, "public"),
+      searchQuery.trim() && ilike(videos.title, `%${searchQuery}%`),
+    ].filter(Boolean) as any[];
+
+    const userVideos = await buildVideoWithUserQuery()
+      .where(and(...conditions))
+      .orderBy(
+        sortFilter ? getOrderByClause(sortFilter) : desc(videos.createdAt),
+      );
+
+    return { user: userInfo, videos: userVideos, count: userVideos.length };
+  },
+);
+
+export const updateVideoVisibility = withErrorHandling(
+  async (videoId: string, visibility: Visibility) => {
+    await validateWithArcjet(videoId);
+    await db
+      .update(videos)
+      .set({ visibility, updatedAt: new Date() })
+      .where(eq(videos.videoId, videoId));
+
+    revalidatePaths(["/", `/video/${videoId}`]);
+    return {};
+  },
+);
+
+export const getVideoProcessingStatus = withErrorHandling(
+  async (videoId: string) => {
+    const processingInfo = await apiFetch<BunnyVideoResponse>(
+      `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoId}`,
+      { bunnyType: "stream" },
+    );
+
+    return {
+      isProcessed: processingInfo.status === 4,
+      encodingProgress: processingInfo.encodeProgress || 0,
+      status: processingInfo.status,
+    };
+  },
+);
+
+export const deleteVideo = withErrorHandling(
+  async (videoId: string, thumbnailUrl: string) => {
+    await apiFetch(
+      `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoId}`,
+      { method: "DELETE", bunnyType: "stream" },
+    );
+
+    const thumbnailPath = thumbnailUrl.split("thumbnails/")[1];
+    await apiFetch(
+      `${THUMBNAIL_STORAGE_BASE_URL}/thumbnails/${thumbnailPath}`,
+      { method: "DELETE", bunnyType: "storage", expectJson: false },
+    );
+
+    await db.delete(videos).where(eq(videos.videoId, videoId));
+    revalidatePaths(["/", `/video/${videoId}`]);
+    return {};
+  },
+);
